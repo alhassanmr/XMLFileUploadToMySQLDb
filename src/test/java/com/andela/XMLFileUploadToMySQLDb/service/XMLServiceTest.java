@@ -2,10 +2,12 @@ package com.andela.XMLFileUploadToMySQLDb.service;
 
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
 import com.andela.XMLFileUploadToMySQLDb.repository.XMLRepository;
+import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -41,14 +43,20 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class XMLServiceTest {
-    @InjectMocks
-    private XMLService xmlService;
     @Mock
     private XMLRepository xmlRepository;
+
+    @InjectMocks
+    private XMLService xmlService;
     int page = 0;
     int size = 10;
     String sortBy = "createdAt";
     Sort.Direction direction = Sort.Direction.ASC;
+
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Test
     void testIsXMLValid() throws IOException {
@@ -73,7 +81,6 @@ class XMLServiceTest {
 
     @Test
     void testParseXMLData() {
-        // Given
         XMLService xmlService = mock(XMLService.class);
         Document document = mock(Document.class);
         NodeList nList = mock(NodeList.class);
