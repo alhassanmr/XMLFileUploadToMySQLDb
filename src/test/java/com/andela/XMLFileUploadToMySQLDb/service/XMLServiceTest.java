@@ -27,6 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -74,40 +75,34 @@ class XMLServiceTest {
     }
 
     @Test
-    public void parseXMLDataTest() {
-        when(document.getElementsByTagName("deviceInfo")).thenReturn(nodeList);
-        when(nodeList.getLength()).thenReturn(1);
-        when(nodeList.item(0)).thenReturn(node);
-        when(node.getNodeType()).thenReturn(Node.ELEMENT_NODE);
-        when(node.getNodeType()).thenReturn(Node.ELEMENT_NODE);
-        when(node.getNodeType()).thenReturn(Node.ELEMENT_NODE);
-        when((Element) node).thenReturn(element);
-        when(element.getElementsByTagName("newspaperName").item(0).getTextContent()).thenReturn("Test Newspaper");
-        when(element.getElementsByTagName("screenInfo").item(0).getAttributes().getNamedItem("width").getNodeValue()).thenReturn("1000");
-        when(element.getElementsByTagName("screenInfo").item(0).getAttributes().getNamedItem("height").getNodeValue()).thenReturn("500");
-        when(element.getElementsByTagName("screenInfo").item(0).getAttributes().getNamedItem("dpi").getNodeValue()).thenReturn("300");
+    void testParseXMLData() {
+        Document document = mock(Document.class);
+        NodeList nList = mock(NodeList.class);
+        Node nNode = mock(Node.class);
+        Element eElement = mock(Element.class);
 
-        xmlService.parseXMLData(document, "testFile.xml");
+        when(document.getElementsByTagName("deviceInfo")).thenReturn(nList);
+        when(nList.getLength()).thenReturn(1);
+        when(nList.item(0)).thenReturn(nNode);
+        when(nNode.getNodeType()).thenReturn(Node.ELEMENT_NODE);
 
-//        XMLData xmlData = new XMLData("Test Newspaper", "1000", "500", "300", "testFile.xml");
-        verify(xmlRepository).save(any());
-    }
+        when(eElement.getElementsByTagName("newspaperName").item(0).getTextContent()).thenReturn("The Times");
+        when(eElement.getElementsByTagName("screenInfo").item(0).getAttributes().getNamedItem("width").getNodeValue()).thenReturn("800");
+        when(eElement.getElementsByTagName("screenInfo").item(0).getAttributes().getNamedItem("height").getNodeValue()).thenReturn("600");
+        when(eElement.getElementsByTagName("screenInfo").item(0).getAttributes().getNamedItem("dpi").getNodeValue()).thenReturn("96");
 
-    @Test
-    public void testGetXMLDataWithFilter_withFilter() {
-        // Given
-        String filter = "data1";
+        XMLRepository xmlRepository = mock(XMLRepository.class);
 
-        // Mock repository behavior
-        Page<XMLData> expectedData = createMockData();
-        when(xmlRepository.findByFilter(filter, any(Pageable.class))).thenReturn(expectedData);
+        xmlService.parseXMLData(document, "test.xml");
 
-        // When
-        Page<XMLData> result = xmlService.getXMLDataWithFilter(filter, page, size, sortBy, direction);
+        XMLData xmlData = new XMLData();
+        xmlData.setNewspaperName("The Times");
+        xmlData.setScreenWidth("800");
+        xmlData.setScreenHeight("600");
+        xmlData.setScreenDpi("96");
+        xmlData.setFilename("test.xml");
 
-        // Then
-        verify(xmlRepository, times(1)).findByFilter(filter, any(Pageable.class));
-        assertEquals(expectedData, result);
+        verify(xmlRepository).save(xmlData);
     }
 
     @Test
@@ -127,6 +122,25 @@ class XMLServiceTest {
         assertEquals(expectedData, result);
     }
 
+    @Test
+    public void testGetXMLDataWithFilter_withFilter() {
+        // Given
+        String filter = "data1";
+
+        // Mock repository behavior
+        Page<XMLData> expectedData = createMockData();
+        when(xmlRepository.findByFilter(eq(filter), any(Pageable.class))).thenReturn(expectedData);
+
+        // When
+        Page<XMLData> result = xmlService.getXMLDataWithFilter(filter, page, size, sortBy, direction);
+
+        // Then
+        verify(xmlRepository, times(1)).findByFilter(eq(filter), any(Pageable.class));
+        assertEquals(expectedData, result);
+    }
+
+
+
 
     private Page<XMLData> createMockData() {
         List<XMLData> content = Arrays.asList(
@@ -134,7 +148,6 @@ class XMLServiceTest {
                 new XMLData(),
                 new XMLData()
         );
-
         PageImpl<XMLData> page = new PageImpl<>(content);
         return page;
     }
