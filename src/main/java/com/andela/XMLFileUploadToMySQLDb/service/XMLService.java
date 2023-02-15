@@ -1,7 +1,9 @@
 package com.andela.XMLFileUploadToMySQLDb.service;
 
+import com.andela.XMLFileUploadToMySQLDb.dto.XMLDataFilterDTO;
 import com.andela.XMLFileUploadToMySQLDb.dto.XMLValidDto;
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
+import com.andela.XMLFileUploadToMySQLDb.model.XMLDataSpecification;
 import com.andela.XMLFileUploadToMySQLDb.repository.XMLRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -82,6 +84,17 @@ public class XMLService {
                 xmlRepository.save(xmlData);
             }
         }
+    }
+
+    public Page<XMLData> findXMLDataByFilter(XMLDataFilterDTO xmlDataFilterDTO) {
+
+        XMLDataSpecification specification = new XMLDataSpecification(xmlDataFilterDTO);
+
+        Sort sort = Sort.by(xmlDataFilterDTO.getSortOrder().equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, xmlDataFilterDTO.getSortField());
+
+        Pageable pageable = PageRequest.of(xmlDataFilterDTO.getPageNumber(), xmlDataFilterDTO.getPageSize(), sort);
+
+        return xmlRepository.findAll(specification, pageable);
     }
 
 }
