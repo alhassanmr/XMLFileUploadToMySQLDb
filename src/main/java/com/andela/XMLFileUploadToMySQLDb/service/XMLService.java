@@ -1,5 +1,6 @@
 package com.andela.XMLFileUploadToMySQLDb.service;
 
+import com.andela.XMLFileUploadToMySQLDb.dto.XMLValidDto;
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
 import com.andela.XMLFileUploadToMySQLDb.repository.XMLRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -31,24 +34,30 @@ public class XMLService {
         this.xmlRepository = xmlRepository;
     }
 
-    public Object isXMLValid(MultipartFile xmlFile) {
-        Document document;
+    public XMLValidDto isXMLValid(MultipartFile xmlFile) {
+        XMLValidDto xmlValid = new XMLValidDto();
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            document = dBuilder.parse(xmlFile.getInputStream());
+            Document document = dBuilder.parse(xmlFile.getInputStream());
+            xmlValid.setDocument(document);
+            xmlValid.setIsValid(true);
         } catch (SAXException e) {
-            log.error("The XML file is not valid: " + e.getMessage());
-            return false;
+            log.error("The XML file is not valid: {}", e.getMessage());
+            xmlValid.setIsValid(false);
+            return xmlValid;
         } catch (ParserConfigurationException e) {
-            log.error("Error configuring the parser: " + e.getMessage());
-            return false;
+            log.error("Error configuring the parser: {}", e.getMessage());
+            xmlValid.setIsValid(false);
+            return xmlValid;
         } catch (IOException e) {
-            log.error("Error reading the file: " + e.getMessage());
-            return false;
+            log.error("Error reading the file: {}", e.getMessage());
+            xmlValid.setIsValid(false);
+            return xmlValid;
         }
-        return document;
+        return xmlValid;
     }
+
     public void parseXMLData(Document document, String filename) {
         NodeList nList = document.getElementsByTagName("deviceInfo");
         for (int i = 0; i < nList.getLength(); i++) {
@@ -74,11 +83,5 @@ public class XMLService {
             }
         }
     }
-    public Page<XMLData> getXMLDataWithFilter(String filter, int page, int size, String sortBy, Sort.Direction direction) {
-        Pageable pageable = PageRequest.of(page, size, direction, sortBy);
-        if (filter == null || filter.isEmpty()) {
-            return xmlRepository.findAll(pageable);
-        }
-        return xmlRepository.findByFilter(filter, pageable);
-    }
+
 }

@@ -1,5 +1,6 @@
 package com.andela.XMLFileUploadToMySQLDb.controller;
 
+import com.andela.XMLFileUploadToMySQLDb.dto.XMLValidDto;
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
 import com.andela.XMLFileUploadToMySQLDb.service.XMLService;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.w3c.dom.Document;
 
 @Slf4j
 @RestController
@@ -33,23 +33,15 @@ public class XMLController {
             return ResponseEntity.badRequest().body("No file received");
         }
         // Validate the XML file against the XSD schema
-        Object isValid = xmlService.isXMLValid(file);
-        if (isValid.equals(false)) {
+        XMLValidDto isValid = xmlService.isXMLValid(file);
+        if (isValid.getIsValid().equals(false)) {
             return ResponseEntity.badRequest().body("Invalid XML file");
         }
         // Parse the data from the XML file
-        xmlService.parseXMLData((Document) isValid, file.getOriginalFilename());
+        xmlService.parseXMLData(isValid.getDocument(), file.getOriginalFilename());
         return ResponseEntity.ok().body("File uploaded successfully");
     }
 
-    @GetMapping("")
-    public Page<XMLData> getXMLDataWithFilter(@RequestParam(required = false) String filter,
-                                              @RequestParam(defaultValue = "0") int page,
-                                              @RequestParam(defaultValue = "5") int size,
-                                              @RequestParam(defaultValue = "id") String sortBy,
-                                              @RequestParam(defaultValue = "ASC") Sort.Direction direction) {
-        log.info("GET /api/xml filter= {}, page= {}, size= {}, sortBy= {}, direction= {}", filter, page, size, sortBy, direction);
-        return xmlService.getXMLDataWithFilter(filter, page, size, sortBy, direction);
-    }
+    
 
 }

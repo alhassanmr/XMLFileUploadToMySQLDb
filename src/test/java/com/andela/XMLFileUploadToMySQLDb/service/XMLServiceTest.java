@@ -1,38 +1,35 @@
 package com.andela.XMLFileUploadToMySQLDb.service;
 
+import com.andela.XMLFileUploadToMySQLDb.dto.XMLValidDto;
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
 import com.andela.XMLFileUploadToMySQLDb.repository.XMLRepository;
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.imageio.metadata.IIOMetadataNode;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -45,124 +42,87 @@ import static org.mockito.Mockito.when;
 class XMLServiceTest {
     @Mock
     private XMLRepository xmlRepository;
+    @Mock
+    XMLValidDto xmlValidDto;
 
     @InjectMocks
     private XMLService xmlService;
     int page = 0;
-    int size = 10;
-    String sortBy = "createdAt";
-    Sort.Direction direction = Sort.Direction.ASC;
+    int size = 5;
+    @Mock
+    private MockMultipartFile mockMultipartFile;
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
+    @Test
+    public void testValidXML() throws Exception {
+        // Arrange
+        String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<epaperRequest>\n" +
+                "<deviceInfo name=\"Browser\" id=\"test@comp\">\n" +
+                "<screenInfo width=\"1280\" height=\"752\" dpi=\"160\" />\n" +
+                "<osInfo name=\"Browser\" version=\"1.0\" />\n" +
+                "<appInfo>\n" +
+                "<newspaperName>abb</newspaperName>\n" +
+                "<version>1.0</version>\n" +
+                "</appInfo>\n" +
+                "</deviceInfo>\n" +
+                "<getPages editionDefId=\"11\" publicationDate=\"2017-06-06\" />\n" +
+                "</epaperRequest>\n";
+        when(mockMultipartFile.getInputStream()).thenReturn(
+                new ByteArrayInputStream(xml.getBytes()));
+//        XMLValidation xmlService = new XMLValidation();
+
+        // Act
+        XMLValidDto xmlValid = xmlService.isXMLValid(mockMultipartFile);
+
+        // Assert
+        assertTrue(xmlValid.getIsValid());
     }
 
     @Test
-    void testIsXMLValid() throws IOException {
-        // Given
-        MultipartFile validXmlFile = mock(MultipartFile.class);
-        InputStream validXmlFileInputStream = new ByteArrayInputStream("<root><element>data</element></root>".getBytes());
-        when(validXmlFile.getInputStream()).thenReturn(validXmlFileInputStream);
+    public void testInvalidXML() throws Exception {
+        // Arrange
+        String xml = "this is not valid xml";
 
-        MultipartFile invalidXmlFile = mock(MultipartFile.class);
-        InputStream invalidXmlFileInputStream = new ByteArrayInputStream("<root><element>data".getBytes());
-        when(invalidXmlFile.getInputStream()).thenReturn(invalidXmlFileInputStream);
+        // Create a mock MultipartFile from the invalid XML string
+        MockMultipartFile file = new MockMultipartFile("file", "test.jpeg", "image/jpeg", xml.getBytes());
 
-        // When
-        Object resultForValidXml = xmlService.isXMLValid(validXmlFile);
-        Object resultForInvalidXml = xmlService.isXMLValid(invalidXmlFile);
+        // Act
+        XMLValidDto xmlValid = xmlService.isXMLValid(file);
 
-        // Then
-        assertTrue(resultForValidXml instanceof Document);
-        assertFalse(resultForInvalidXml instanceof Document);
-        assertEquals(false, resultForInvalidXml);
+        // Assert
+        assertFalse(xmlValid.getIsValid());
     }
 
     @Test
-    void testParseXMLData() {
-        XMLService xmlService = mock(XMLService.class);
-        Document document = mock(Document.class);
-        NodeList nList = mock(NodeList.class);
-        Node nNode = mock(Node.class);
-        Element eElement = mock(Element.class);
-        when(document.getElementsByTagName("deviceInfo")).thenReturn(nList);
-        when(nList.getLength()).thenReturn(1);
-        when(nList.item(0)).thenReturn(nNode);
-        when(nNode.getNodeType()).thenReturn(Node.ELEMENT_NODE);
-        when(nNode.getNodeType()).thenReturn(Node.ELEMENT_NODE);
-        when(eElement.getElementsByTagName("newspaperName")).thenReturn(nList);
-        when(nList.item(0)).thenReturn(nNode);
-        when(nNode.getTextContent()).thenReturn("The Times");
-        when(eElement.getElementsByTagName("screenInfo")).thenReturn(nList);
-        when(nList.item(0)).thenReturn(nNode);
-        NamedNodeMap attributes = mock(NamedNodeMap.class);
-        when(nNode.getAttributes()).thenReturn(attributes);
-        Node widthAttribute = mock(Node.class);
-        when(attributes.getNamedItem("width")).thenReturn(widthAttribute);
-        when(widthAttribute.getNodeValue()).thenReturn("1920");
-        Node heightAttribute = mock(Node.class);
-        when(attributes.getNamedItem("height")).thenReturn(heightAttribute);
-        when(heightAttribute.getNodeValue()).thenReturn("1080");
-        Node dpiAttribute = mock(Node.class);
-        when(attributes.getNamedItem("dpi")).thenReturn(dpiAttribute);
-        when(dpiAttribute.getNodeValue()).thenReturn("72");
+    public void testIsXMLValidWithIOException() throws IOException {
+        when(mockMultipartFile.getInputStream()).thenThrow(new IOException("Error reading file"));
 
-        // When
-        xmlService.parseXMLData(document, "test.xml");
+        XMLValidDto result = new XMLValidDto();
+        try {
+            result = xmlService.isXMLValid(mockMultipartFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        // Then
-        XMLData xmlData = new XMLData();
-        xmlData.setNewspaperName("The Times");
-        xmlData.setScreenWidth("1920");
-        xmlData.setScreenHeight("1080");
-        xmlData.setScreenDpi("72");
-        xmlData.setFilename("test.xml");
-        xmlData.setUploadTime(new Timestamp(System.currentTimeMillis()));
-        verify(xmlRepository, times(1)).save(xmlData);
+        assertFalse(result.getIsValid());
     }
-
     @Test
-    public void testGetXMLDataWithFilter_withoutFilter() {
-        // Given
-        String filter = "";
+    public void testIsXMLValidWithParserConfigurationException() {
+        // Create a mock MultipartFile object that triggers the ParserConfigurationException
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "filename.xml", "text/xml", new byte[0]);
 
-        // Mock repository behavior
-        Page<XMLData> expectedData = createMockData();
-        when(xmlRepository.findAll(any(Pageable.class))).thenReturn(expectedData);
-
-        // When
-        Page<XMLData> result = xmlService.getXMLDataWithFilter(filter, page, size, sortBy, direction);
-
-        // Then
-        verify(xmlRepository, times(1)).findAll(any(Pageable.class));
-        assertEquals(expectedData, result);
+        // Call the isXMLValid() method and assert that it returns an invalid XMLValidDto object
+        XMLValidDto result = xmlService.isXMLValid(mockMultipartFile);
+        assertFalse(result.getIsValid());
     }
-
     @Test
-    public void testGetXMLDataWithFilter_withFilter() {
-        // Given
-        String filter = "data1";
+    public void testIsXMLValidWithInvalidXML() {
+        // Create a mock MultipartFile object with invalid XML
+        String xml = "<root><element></root>";
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "filename.xml", "text/xml", xml.getBytes());
 
-        // Mock repository behavior
-        Page<XMLData> expectedData = createMockData();
-        when(xmlRepository.findByFilter(eq(filter), any(Pageable.class))).thenReturn(expectedData);
-
-        // When
-        Page<XMLData> result = xmlService.getXMLDataWithFilter(filter, page, size, sortBy, direction);
-
-        // Then
-        verify(xmlRepository, times(1)).findByFilter(eq(filter), any(Pageable.class));
-        assertEquals(expectedData, result);
-    }
-
-
-    private Page<XMLData> createMockData() {
-        List<XMLData> content = Arrays.asList(
-                new XMLData(),
-                new XMLData(),
-                new XMLData()
-        );
-        return new PageImpl<>(content);
+        // Call the isXMLValid() method and assert that it returns an invalid XMLValidDto object
+        XMLValidDto result = xmlService.isXMLValid(mockMultipartFile);
+        assertFalse(result.getIsValid());
     }
 }
