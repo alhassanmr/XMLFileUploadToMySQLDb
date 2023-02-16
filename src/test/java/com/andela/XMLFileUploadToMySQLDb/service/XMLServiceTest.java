@@ -1,16 +1,34 @@
 package com.andela.XMLFileUploadToMySQLDb.service;
 
+import com.andela.XMLFileUploadToMySQLDb.dto.XMLDataFilterDTO;
+import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
+import com.andela.XMLFileUploadToMySQLDb.model.DefaultSpecification;
+import com.andela.XMLFileUploadToMySQLDb.model.SortOrders;
+import com.andela.XMLFileUploadToMySQLDb.model.XMLDataSpecification;
 import com.andela.XMLFileUploadToMySQLDb.model.XMLValid;
 import com.andela.XMLFileUploadToMySQLDb.repository.XMLRepository;
+import jakarta.persistence.criteria.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -35,6 +53,10 @@ class XMLServiceTest {
     int size = 5;
     @Mock
     private MockMultipartFile mockMultipartFile;
+    public XMLServiceTest() {
+        MockitoAnnotations.openMocks(this);
+        xmlService = new XMLService(xmlRepository);
+    }
 
     @Test
     public void testValidXML() throws Exception {
@@ -109,4 +131,60 @@ class XMLServiceTest {
         XMLValid result = xmlService.isXMLValid(mockMultipartFile);
         assertFalse(result.getIsValid());
     }
+
+    @Test
+    void testFindAllWithFilter() {
+        // create a filter with some values
+        XMLDataFilterDTO filter = new XMLDataFilterDTO();
+        filter.setNewspaperName("Test Newspaper");
+        filter.setFilename("test.xml");
+
+        // create a pageable object
+        Pageable pageable = Pageable.ofSize(10).withPage(0);
+
+        // create a list of XMLData objects to return from the repository
+        XMLData xmlData = new XMLData();
+        xmlData.setId(1L);
+        xmlData.setNewspaperName("Test Newspaper");
+        xmlData.setFilename("test.xml");
+        PageImpl<XMLData> page = new PageImpl<>(Collections.singletonList(xmlData));
+
+        // mock the repository method to return the list of XMLData objects
+        when(xmlRepository.findAll(any(XMLDataSpecification.class), any(Pageable.class))).thenReturn(page);
+
+        // call the service method with the filter and pageable objects
+        Page<XMLData> result = xmlService.findAll(filter, pageable);
+
+        // assert that the returned page object contains the expected data
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1L, result.getContent().get(0).getId().longValue());
+        assertEquals("Test Newspaper", result.getContent().get(0).getNewspaperName());
+        assertEquals("test.xml", result.getContent().get(0).getFilename());
+    }
+
+    @Test
+    void testFindAllWithoutFilter() {
+        // create a pageable object
+        Pageable pageable = Pageable.ofSize(10).withPage(0);
+
+        // create a list of XMLData objects to return from the repository
+        XMLData xmlData = new XMLData();
+        xmlData.setId(1L);
+        xmlData.setNewspaperName("Test Newspaper");
+        xmlData.setFilename("test.xml");
+        PageImpl<XMLData> page = new PageImpl<>(Collections.singletonList(xmlData));
+
+        // mock the repository method to return the list of XMLData objects
+        when(xmlRepository.findAll(any(DefaultSpecification.class), any(Pageable.class))).thenReturn(page);
+
+        // call the service method without a filter and with the pageable object
+        Page<XMLData> result = xmlService.findAll(null, pageable);
+
+        // assert that the returned page object contains the expected data
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1L, result.getContent().get(0).getId().longValue());
+        assertEquals("Test Newspaper", result.getContent().get(0).getNewspaperName());
+        assertEquals("test.xml", result.getContent().get(0).getFilename());
+    }
+
 }
