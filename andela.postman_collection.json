@@ -1,0 +1,108 @@
+{
+	"info": {
+		"_postman_id": "758c698e-ef96-40e7-aa68-d3e982342074",
+		"name": "andela",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12250067"
+	},
+	"item": [
+		{
+			"name": "Retrieve XML data saved",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/xml",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"xml"
+					],
+					"query": [
+						{
+							"key": "newspaperName",
+							"value": "abb1",
+							"disabled": true
+						},
+						{
+							"key": "screenWidth",
+							"value": "12801",
+							"disabled": true
+						},
+						{
+							"key": "screenHeight",
+							"value": "752",
+							"disabled": true
+						},
+						{
+							"key": "screenDpi",
+							"value": "screenDpi",
+							"disabled": true
+						},
+						{
+							"key": "filename",
+							"value": "test.xml",
+							"disabled": true
+						},
+						{
+							"key": "pageNumber",
+							"value": "0",
+							"disabled": true
+						},
+						{
+							"key": "pageSize",
+							"value": "5",
+							"disabled": true
+						},
+						{
+							"key": "sortField",
+							"value": "screenHeight",
+							"disabled": true
+						},
+						{
+							"key": "isDescending",
+							"value": "true",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Saving XML Content to the DB",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "/C:/Users/master/Desktop/test.xml"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/xml/upload",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"xml",
+						"upload"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
