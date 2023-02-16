@@ -2,8 +2,10 @@ package com.andela.XMLFileUploadToMySQLDb.model;
 
 import com.andela.XMLFileUploadToMySQLDb.dto.XMLDataFilterDTO;
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
+import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
@@ -18,22 +20,51 @@ public class XMLDataSpecification implements Specification<XMLData> {
     }
     @Override
     public Predicate toPredicate(Root<XMLData> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+
         List<Predicate> predicates = new ArrayList<>();
-        if (xmlDataFilterDTO.getNewspaperName() != null) {
+
+        if (StringUtils.isNotBlank(xmlDataFilterDTO.getNewspaperName())) {
             predicates.add(criteriaBuilder.equal(root.get("newspaperName"), xmlDataFilterDTO.getNewspaperName()));
         }
-        if (xmlDataFilterDTO.getScreenWidth() != null) {
+
+        if (StringUtils.isNotBlank(xmlDataFilterDTO.getScreenWidth())) {
             predicates.add(criteriaBuilder.equal(root.get("screenWidth"), xmlDataFilterDTO.getScreenWidth()));
         }
-        if (xmlDataFilterDTO.getScreenHeight() != null) {
+
+        if (StringUtils.isNotBlank(xmlDataFilterDTO.getScreenHeight())) {
             predicates.add(criteriaBuilder.equal(root.get("screenHeight"), xmlDataFilterDTO.getScreenHeight()));
         }
-        if (xmlDataFilterDTO.getScreenDpi() != null) {
+
+        if (StringUtils.isNotBlank(xmlDataFilterDTO.getScreenDpi())) {
             predicates.add(criteriaBuilder.equal(root.get("screenDpi"), xmlDataFilterDTO.getScreenDpi()));
         }
-        if (xmlDataFilterDTO.getFilename() != null) {
+
+        if (StringUtils.isNotBlank(xmlDataFilterDTO.getFilename())) {
             predicates.add(criteriaBuilder.equal(root.get("filename"), xmlDataFilterDTO.getFilename()));
         }
-        return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
+
+        if (xmlDataFilterDTO.getSortOrders() != null && StringUtils.isNotBlank(xmlDataFilterDTO.getSortOrders().getSortBy())) {
+            Path<Object> orderBy;
+            if (xmlDataFilterDTO.getSortOrders().getSortBy().equalsIgnoreCase("newspaperName")) {
+                orderBy = root.get("newspaperName");
+            } else if (xmlDataFilterDTO.getSortOrders().getSortBy().equalsIgnoreCase("screenWidth")) {
+                orderBy = root.get("screenWidth");
+            } else if (xmlDataFilterDTO.getSortOrders().getSortBy().equalsIgnoreCase("screenHeight")) {
+                orderBy = root.get("screenHeight");
+            } else if (xmlDataFilterDTO.getSortOrders().getSortBy().equalsIgnoreCase("screenDpi")) {
+                orderBy = root.get("screenDpi");
+            } else if (xmlDataFilterDTO.getSortOrders().getSortBy().equalsIgnoreCase("filename")) {
+                orderBy = root.get("filename");
+            } else {
+                throw new IllegalArgumentException("Invalid sort field: " + xmlDataFilterDTO.getSortOrders().getSortBy());
+            }
+            if (xmlDataFilterDTO.getSortOrders().isDescending()) {
+                query.orderBy(criteriaBuilder.desc(orderBy));
+            } else {
+                query.orderBy(criteriaBuilder.asc(orderBy));
+            }
+        }
+
+        return predicates.isEmpty() ? criteriaBuilder.conjunction() : criteriaBuilder.and(predicates.toArray(new Predicate[0]));
     }
 }

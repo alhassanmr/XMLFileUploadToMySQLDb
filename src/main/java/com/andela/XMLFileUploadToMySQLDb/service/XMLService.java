@@ -1,7 +1,9 @@
 package com.andela.XMLFileUploadToMySQLDb.service;
 
 import com.andela.XMLFileUploadToMySQLDb.dto.XMLDataFilterDTO;
-import com.andela.XMLFileUploadToMySQLDb.dto.XMLValidDto;
+import com.andela.XMLFileUploadToMySQLDb.model.DefaultSpecification;
+import com.andela.XMLFileUploadToMySQLDb.model.SortOrders;
+import com.andela.XMLFileUploadToMySQLDb.model.XMLValid;
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
 import com.andela.XMLFileUploadToMySQLDb.model.XMLDataSpecification;
 import com.andela.XMLFileUploadToMySQLDb.repository.XMLRepository;
@@ -10,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.w3c.dom.Document;
@@ -36,8 +39,8 @@ public class XMLService {
         this.xmlRepository = xmlRepository;
     }
 
-    public XMLValidDto isXMLValid(MultipartFile xmlFile) {
-        XMLValidDto xmlValid = new XMLValidDto();
+    public XMLValid isXMLValid(MultipartFile xmlFile) {
+        XMLValid xmlValid = new XMLValid();
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -86,13 +89,29 @@ public class XMLService {
         }
     }
 
-    public Page<XMLData> findXMLDataByFilter(XMLDataFilterDTO xmlDataFilterDTO) {
+    public Page<XMLData> findXMLDataByFilter(XMLDataFilterDTO xmlDataFilterDTO, int pageNumber, int pageSize) {
+        log.debug("Trying to fetch all records based on filter");
+        List<Sort.Order> orders = new ArrayList<>();
+        if (xmlDataFilterDTO != null) {
+            SortOrders sortOrders;
+                sortOrders = xmlDataFilterDTO.getSortOrders();
+            if (sortOrders != null && sortOrders.getSortBy() != null) {
+                orders.add(new Sort.Order(sortOrders.isDescending() ? Sort.Direction.DESC : Sort.Direction.ASC, sortOrders.getSortBy()));
+            }
+        }
+        if (orders.isEmpty())
+            orders.add(new Sort.Order(Sort.Direction.DESC, "id"));
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(orders));
 
-        XMLDataSpecification specification = new XMLDataSpecification(xmlDataFilterDTO);
+        return findAll(xmlDataFilterDTO, pageable);
+    }
 
-        Sort sort = Sort.by(xmlDataFilterDTO.getSortOrder().equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, xmlDataFilterDTO.getSortField());
+    public Page<XMLData> findAll(XMLDataFilterDTO xmlDataFilterDTO, Pageable pageable) {
+        Specification<XMLData> specification = new XMLDataSpecification(xmlDataFilterDTO);
 
-        Pageable pageable = PageRequest.of(xmlDataFilterDTO.getPageNumber(), xmlDataFilterDTO.getPageSize(), sort);
+        if (xmlDataFilterDTO == null) {
+            specification = new DefaultSpecification();
+        }
 
         return xmlRepository.findAll(specification, pageable);
     }

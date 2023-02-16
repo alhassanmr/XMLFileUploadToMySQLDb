@@ -1,31 +1,16 @@
 package com.andela.XMLFileUploadToMySQLDb.service;
 
-import com.andela.XMLFileUploadToMySQLDb.dto.XMLValidDto;
-import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
+import com.andela.XMLFileUploadToMySQLDb.model.XMLValid;
 import com.andela.XMLFileUploadToMySQLDb.repository.XMLRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,7 +27,7 @@ class XMLServiceTest {
     @Mock
     private XMLRepository xmlRepository;
     @Mock
-    XMLValidDto xmlValidDto;
+    XMLValid xmlValid;
 
     @InjectMocks
     private XMLService xmlService;
@@ -72,7 +56,7 @@ class XMLServiceTest {
 //        XMLValidation xmlService = new XMLValidation();
 
         // Act
-        XMLValidDto xmlValid = xmlService.isXMLValid(mockMultipartFile);
+        XMLValid xmlValid = xmlService.isXMLValid(mockMultipartFile);
 
         // Assert
         assertTrue(xmlValid.getIsValid());
@@ -87,7 +71,7 @@ class XMLServiceTest {
         MockMultipartFile file = new MockMultipartFile("file", "test.jpeg", "image/jpeg", xml.getBytes());
 
         // Act
-        XMLValidDto xmlValid = xmlService.isXMLValid(file);
+        XMLValid xmlValid = xmlService.isXMLValid(file);
 
         // Assert
         assertFalse(xmlValid.getIsValid());
@@ -97,7 +81,7 @@ class XMLServiceTest {
     public void testIsXMLValidWithIOException() throws IOException {
         when(mockMultipartFile.getInputStream()).thenThrow(new IOException("Error reading file"));
 
-        XMLValidDto result = new XMLValidDto();
+        XMLValid result = new XMLValid();
         try {
             result = xmlService.isXMLValid(mockMultipartFile);
         } catch (Exception e) {
@@ -112,7 +96,7 @@ class XMLServiceTest {
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "filename.xml", "text/xml", new byte[0]);
 
         // Call the isXMLValid() method and assert that it returns an invalid XMLValidDto object
-        XMLValidDto result = xmlService.isXMLValid(mockMultipartFile);
+        XMLValid result = xmlService.isXMLValid(mockMultipartFile);
         assertFalse(result.getIsValid());
     }
     @Test
@@ -122,7 +106,7 @@ class XMLServiceTest {
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "filename.xml", "text/xml", xml.getBytes());
 
         // Call the isXMLValid() method and assert that it returns an invalid XMLValidDto object
-        XMLValidDto result = xmlService.isXMLValid(mockMultipartFile);
+        XMLValid result = xmlService.isXMLValid(mockMultipartFile);
         assertFalse(result.getIsValid());
     }
 }

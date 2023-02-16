@@ -1,5 +1,6 @@
 package com.andela.XMLFileUploadToMySQLDb.dto;
 
+import com.andela.XMLFileUploadToMySQLDb.model.SortOrders;
 import lombok.Data;
 
 @Data
@@ -9,8 +10,6 @@ public class XMLDataFilterDTO {
     private String screenHeight;
     private String screenDpi;
     private String filename;
-    private Integer pageNumber;
-    private Integer pageSize;
     private String sortField;
-    private String sortOrder;
+    private SortOrders sortOrders;
 }

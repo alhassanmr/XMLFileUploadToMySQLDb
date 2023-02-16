@@ -1,10 +1,10 @@
-package com.andela.XMLFileUploadToMySQLDb.dto;
+package com.andela.XMLFileUploadToMySQLDb.model;
 
 import lombok.Data;
 import org.w3c.dom.Document;
 
 @Data
-public class XMLValidDto {
+public class XMLValid {
     private Boolean isValid;
     private Document document;
 }
