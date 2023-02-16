@@ -90,15 +90,14 @@ public class XMLService {
     }
 
     public Page<XMLData> findXMLDataByFilter(XMLDataFilterDTO xmlDataFilterDTO, int pageNumber, int pageSize) {
-        log.debug("Trying to fetch all records based on filter");
+        // fetching all records based on filter
         List<Sort.Order> orders = new ArrayList<>();
-        if (xmlDataFilterDTO != null) {
-            SortOrders sortOrders;
-                sortOrders = xmlDataFilterDTO.getSortOrders();
-            if (sortOrders != null && sortOrders.getSortBy() != null) {
-                orders.add(new Sort.Order(sortOrders.isDescending() ? Sort.Direction.DESC : Sort.Direction.ASC, sortOrders.getSortBy()));
-            }
+        SortOrders sortOrders;
+            sortOrders = xmlDataFilterDTO.getSortOrders();
+        if (sortOrders != null && sortOrders.getSortBy() != null) {
+            orders.add(new Sort.Order(sortOrders.isDescending() ? Sort.Direction.DESC : Sort.Direction.ASC, sortOrders.getSortBy()));
         }
+
         if (orders.isEmpty())
             orders.add(new Sort.Order(Sort.Direction.DESC, "id"));
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(orders));

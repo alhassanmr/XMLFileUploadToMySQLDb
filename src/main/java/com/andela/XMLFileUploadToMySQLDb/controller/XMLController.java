@@ -1,10 +1,12 @@
 package com.andela.XMLFileUploadToMySQLDb.controller;
 
 import com.andela.XMLFileUploadToMySQLDb.dto.XMLDataFilterDTO;
+import com.andela.XMLFileUploadToMySQLDb.model.SortOrders;
 import com.andela.XMLFileUploadToMySQLDb.model.XMLValid;
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
 import com.andela.XMLFileUploadToMySQLDb.repository.XMLRepository;
 import com.andela.XMLFileUploadToMySQLDb.service.XMLService;
+import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,9 +52,28 @@ public class XMLController {
     }
 
     @GetMapping
-    public ResponseEntity<List<XMLData>> getXMLData( @RequestParam(required = false) XMLDataFilterDTO xmlDataFilterDTO,
+    public ResponseEntity<List<XMLData>> getXMLData( @RequestParam(name = "newspaperName", required = false) String newspaperName,
+                                                     @RequestParam(name = "screenWidth", required = false) String screenWidth,
+                                                     @RequestParam(name = "screenHeight", required = false) String screenHeight,
+                                                     @RequestParam(name = "screenDpi", required = false) String screenDpi,
+                                                     @RequestParam(name = "filename", required = false) String filename,
+                                                     @RequestParam(name = "sortField", required = false) String sortField,
+                                                     @RequestParam(name = "isDescending", required = false) String isDescending,
                                                      @RequestParam(defaultValue = "0") int pageNumber,
                                                      @RequestParam(defaultValue = "5") int pageSize) {
+        XMLDataFilterDTO xmlDataFilterDTO = new XMLDataFilterDTO();
+        xmlDataFilterDTO.setNewspaperName(newspaperName);
+        xmlDataFilterDTO.setScreenWidth(screenWidth);
+        xmlDataFilterDTO.setScreenHeight(screenHeight);
+        xmlDataFilterDTO.setScreenDpi(screenDpi);
+        xmlDataFilterDTO.setFilename(filename);
+        xmlDataFilterDTO.setSortField(sortField);
+
+        SortOrders sortOrders = new SortOrders();
+        sortOrders.setSortBy(sortField);
+        sortOrders.setDescending(Boolean.parseBoolean(isDescending));
+        xmlDataFilterDTO.setSortOrders(sortOrders);
+
         log.info("GET /api/xml xmlDataFilterDTO= {}, pageNumber= {}, pageSize= {}", xmlDataFilterDTO, pageNumber, pageSize);
         return new ResponseEntity<>(xmlService.findXMLDataByFilter(xmlDataFilterDTO, pageNumber, pageSize).getContent(), HttpStatus.OK);
     }
