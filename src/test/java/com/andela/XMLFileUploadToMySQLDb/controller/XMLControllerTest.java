@@ -1,31 +1,22 @@
 package com.andela.XMLFileUploadToMySQLDb.controller;
 
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
-import com.andela.XMLFileUploadToMySQLDb.service.XMLService;
+import com.andela.XMLFileUploadToMySQLDb.service.EPaperXMLService;
 import org.junit.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-import org.w3c.dom.Document;
 
 import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class XMLControllerTest {
@@ -34,7 +25,7 @@ class XMLControllerTest {
     private XMLController xmlController;
 
     @Mock
-    private XMLService xmlService;
+    private EPaperXMLService EPaperXmlService;
 
     @Test
     void testUploadXMLFileWithValidFile() throws Exception {

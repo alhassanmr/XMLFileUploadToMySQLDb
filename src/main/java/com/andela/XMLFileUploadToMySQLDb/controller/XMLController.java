@@ -4,10 +4,9 @@ import com.andela.XMLFileUploadToMySQLDb.dto.XMLDataFilterDTO;
 import com.andela.XMLFileUploadToMySQLDb.model.SortOrders;
 import com.andela.XMLFileUploadToMySQLDb.model.XMLValid;
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
-import com.andela.XMLFileUploadToMySQLDb.repository.XMLRepository;
 import com.andela.XMLFileUploadToMySQLDb.service.XMLService;
-import io.micrometer.common.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,15 +22,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/xml")
 public class XMLController {
-
+    @Qualifier("epaper")
     private final XMLService xmlService;
 
-    final
-    XMLRepository xmlRepository;
-
-    public XMLController(XMLService xmlService, XMLRepository xmlRepository) {
+    public XMLController(XMLService xmlService) {
         this.xmlService = xmlService;
-        this.xmlRepository = xmlRepository;
     }
 
     @PostMapping("/upload")

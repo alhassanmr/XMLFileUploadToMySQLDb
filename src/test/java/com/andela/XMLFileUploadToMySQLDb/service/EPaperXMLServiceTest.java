@@ -3,11 +3,9 @@ package com.andela.XMLFileUploadToMySQLDb.service;
 import com.andela.XMLFileUploadToMySQLDb.dto.XMLDataFilterDTO;
 import com.andela.XMLFileUploadToMySQLDb.entity.XMLData;
 import com.andela.XMLFileUploadToMySQLDb.model.DefaultSpecification;
-import com.andela.XMLFileUploadToMySQLDb.model.SortOrders;
 import com.andela.XMLFileUploadToMySQLDb.model.XMLDataSpecification;
 import com.andela.XMLFileUploadToMySQLDb.model.XMLValid;
 import com.andela.XMLFileUploadToMySQLDb.repository.XMLRepository;
-import jakarta.persistence.criteria.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,19 +14,12 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -41,21 +32,21 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class XMLServiceTest {
+class EPaperXMLServiceTest {
     @Mock
     private XMLRepository xmlRepository;
     @Mock
     XMLValid xmlValid;
 
     @InjectMocks
-    private XMLService xmlService;
+    private EPaperXMLService EPaperXmlService;
     int page = 0;
     int size = 5;
     @Mock
     private MockMultipartFile mockMultipartFile;
-    public XMLServiceTest() {
+    public EPaperXMLServiceTest() {
         MockitoAnnotations.openMocks(this);
-        xmlService = new XMLService(xmlRepository);
+        EPaperXmlService = new EPaperXMLService(xmlRepository);
     }
 
     @Test
@@ -78,7 +69,7 @@ class XMLServiceTest {
 //        XMLValidation xmlService = new XMLValidation();
 
         // Act
-        XMLValid xmlValid = xmlService.isXMLValid(mockMultipartFile);
+        XMLValid xmlValid = EPaperXmlService.isXMLValid(mockMultipartFile);
 
         // Assert
         assertTrue(xmlValid.getIsValid());
@@ -93,7 +84,7 @@ class XMLServiceTest {
         MockMultipartFile file = new MockMultipartFile("file", "test.jpeg", "image/jpeg", xml.getBytes());
 
         // Act
-        XMLValid xmlValid = xmlService.isXMLValid(file);
+        XMLValid xmlValid = EPaperXmlService.isXMLValid(file);
 
         // Assert
         assertFalse(xmlValid.getIsValid());
@@ -105,7 +96,7 @@ class XMLServiceTest {
 
         XMLValid result = new XMLValid();
         try {
-            result = xmlService.isXMLValid(mockMultipartFile);
+            result = EPaperXmlService.isXMLValid(mockMultipartFile);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -118,7 +109,7 @@ class XMLServiceTest {
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "filename.xml", "text/xml", new byte[0]);
 
         // Call the isXMLValid() method and assert that it returns an invalid XMLValidDto object
-        XMLValid result = xmlService.isXMLValid(mockMultipartFile);
+        XMLValid result = EPaperXmlService.isXMLValid(mockMultipartFile);
         assertFalse(result.getIsValid());
     }
     @Test
@@ -128,7 +119,7 @@ class XMLServiceTest {
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "filename.xml", "text/xml", xml.getBytes());
 
         // Call the isXMLValid() method and assert that it returns an invalid XMLValidDto object
-        XMLValid result = xmlService.isXMLValid(mockMultipartFile);
+        XMLValid result = EPaperXmlService.isXMLValid(mockMultipartFile);
         assertFalse(result.getIsValid());
     }
 
@@ -153,7 +144,7 @@ class XMLServiceTest {
         when(xmlRepository.findAll(any(XMLDataSpecification.class), any(Pageable.class))).thenReturn(page);
 
         // call the service method with the filter and pageable objects
-        Page<XMLData> result = xmlService.findAll(filter, pageable);
+        Page<XMLData> result = EPaperXmlService.findAll(filter, pageable);
 
         // assert that the returned page object contains the expected data
         assertEquals(1, result.getTotalElements());
@@ -178,7 +169,7 @@ class XMLServiceTest {
         when(xmlRepository.findAll(any(DefaultSpecification.class), any(Pageable.class))).thenReturn(page);
 
         // call the service method without a filter and with the pageable object
-        Page<XMLData> result = xmlService.findAll(null, pageable);
+        Page<XMLData> result = EPaperXmlService.findAll(null, pageable);
 
         // assert that the returned page object contains the expected data
         assertEquals(1, result.getTotalElements());
