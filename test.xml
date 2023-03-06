@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<epaperRequest>
+	<deviceInfo name="Browser" id="test@comp">
+		<screenInfo width="12801" height="7521" dpi="1601"/>
+		<osInfo name="Browser" version="1.0"/>
+		<appInfo>
+			<newspaperName>abb1</newspaperName>
+			<version>1.0</version>
+		</appInfo>
+	</deviceInfo>
+	<getPages editionDefId="11" publicationDate="2017-06-06"/>
+</epaperRequest>
